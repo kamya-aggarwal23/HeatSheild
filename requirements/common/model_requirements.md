@@ -2,7 +2,7 @@
 
 ## 1. Project Objective
 
-Develop a machine-learning system that predicts the next day's maximum temperature using historical daily weather observations.
+Develop a machine-learning system that predicts the next day's maximum temperature using historical daily weather observations for Delhi and Tokyo.
 
 ## 2. Prediction Type
 
@@ -10,6 +10,8 @@ Develop a machine-learning system that predicts the next day's maximum temperatu
 - Primary Task: Regression
 - Prediction Frequency: Daily
 - Prediction Horizon: 1 day ahead
+- Secondary Output: Threshold-based binary Heat Day classification.
+- Separate Models: One initial prediction model for each city.
 
 ## 3. Initial Input Features
 
@@ -41,7 +43,13 @@ Where:
 ## 5. Expected Output
 
 1. Predicted maximum temperature (°C).
-2. Heat severity classification based on the predicted temperature and city-specific thresholds.
+2. Binary Heat Day classification:
+   - 0 — Not a Heat Day
+   - 1 — Heat Day
+
+The binary classification will be derived from the predicted maximum temperature using city-specific thresholds.
+
+An additional temperature severity category may also be displayed as a secondary output.
 
 ## 6. Baseline Models
 
@@ -59,9 +67,13 @@ The model will initially be evaluated using:
 - MAE (Mean Absolute Error)
 - RMSE (Root Mean Squared Error)
 - Extreme-heat MAE (prediction error on extreme-heat days)
-- Classification Recall (ability to identify extreme-heat days correctly)
+- Classification Precision
+- Classification Recall
+- Confusion Matrix
 
 Model performance will be compared against the baseline models.
+
+The primary project goal is to achieve at least 98% recall on Heat Days, while maintaining reasonable precision.
 
 ## 8. Validation Strategy
 
