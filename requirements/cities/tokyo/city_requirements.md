@@ -38,3 +38,10 @@ Document:
 
 ## 7. Potential V1 Model Features
 (To be finalized after data availability and relevance analysis.)
+
+## 8. Date range
+- Start: 1 January 2005
+- End: 31 December 2025
+- Frequency: Daily
+- Location: Tokyo
+- Primary variable: Maximum temperature
