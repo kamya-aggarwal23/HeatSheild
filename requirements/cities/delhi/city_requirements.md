@@ -1,5 +1,4 @@
-
-# Delhi — City Requirements
+\# Delhi — City Requirements
 
 ## 1. City Information
 
@@ -38,9 +37,38 @@ Delhi experiences significant seasonal variations in temperature and rainfall.
 - September and October represent the transition away from the monsoon.
 - October generally experiences lower rainfall and gradually decreasing temperatures.
 
-## 3. Potential Temperature Influencing Factors
+## 3. Data Collection Requirements
 
-The following variables may influence Delhi's daily maximum temperature:
+- Dataset: ERA5-Land
+- Data Source: Open-Meteo Historical Weather API
+- API Endpoint: https://archive-api.open-meteo.com/v1/archive
+- API Model Identifier: `era5_land`
+- Variable: `temperature_2m`
+- Variable Description: Hourly air temperature at 2 metres above ground
+- Collection Frequency: Hourly
+- Temperature Unit: °C
+- Start Date: 2005-01-01
+- End Date: 2025-12-31
+- Requested Timezone: UTC
+
+### Timezone Conversion and Daily Aggregation
+
+ERA5-Land hourly timestamps will initially be collected in UTC.
+
+The following processing sequence must be applied:
+
+1. Read the hourly temperature observations and UTC timestamps.
+2. Convert UTC timestamps to `Asia/Kolkata`.
+3. Extract the local calendar date.
+4. Group hourly observations by local calendar date.
+5. Calculate the maximum hourly temperature for each local date.
+6. Save the resulting daily maximum-temperature dataset.
+
+Daily maximum temperatures must be calculated after timezone conversion, not by grouping observations using UTC dates.
+
+## 4. Potential Temperature Influencing Factors
+
+The following factors may influence Delhi's daily maximum temperature:
 
 - Recent daily maximum temperatures
 - Seasonal variations
@@ -55,7 +83,7 @@ For the initial V1 model, eight consecutive daily maximum-temperature observatio
 
 Other weather variables may be investigated in future versions depending on data availability and model performance.
 
-## 4. Extreme Heat Characteristics
+## 5. Extreme Heat Characteristics
 
 Delhi is located in the northern Indian plains and experiences severe summer heat.
 
@@ -70,9 +98,7 @@ The official declaration also considers station coverage and persistence criteri
 
 For HeatShield, an appropriate city-specific project classification must be finalized separately. A simple temperature threshold should not be presented as an official IMD heat-wave declaration.
 
-## 5. Research Sources
-
-The following sources will be used for Delhi weather research:
+## 6. Research Sources
 
 1. India Meteorological Department (IMD)
    - https://mausam.imd.gov.in/
@@ -89,9 +115,7 @@ The following sources will be used for Delhi weather research:
 5. Delhi Disaster Management Authority
    - https://ddma.delhi.gov.in/
 
-## 6. Initial Observations
-
-Based on the available climatological information:
+## 7. Initial Observations
 
 - Delhi experiences strong seasonal temperature variations.
 - May and June are particularly important months for extreme heat analysis.
@@ -100,9 +124,9 @@ Based on the available climatological information:
 - Winter conditions include low temperatures and frequent fog.
 - Historical temperature and seasonal patterns should be considered when developing a next-day forecasting model.
 
-These observations are preliminary and will be further investigated using daily historical weather data.
+These observations are preliminary and will be further investigated using the collected and processed dataset.
 
-## 7. Potential V1 Model Features
+## 8. V1 Model Features
 
 The initial V1 model will use eight consecutive daily maximum-temperature observations.
 
@@ -131,7 +155,18 @@ Potential future features:
 
 These additional features will be considered after examining the collected dataset.
 
+## 9. Expected Output Files
+
+Raw hourly dataset:
+- `data/raw/delhi_hourly_2005_2025.csv`
+
+Processed daily dataset:
+- `data/processed/delhi_daily_2005_2025.csv`
+
+The processed dataset must contain one daily maximum-temperature observation per local calendar date.
+
 ---
 
-**Status:** Initial city requirements documented.
-**Next Step:** Collect and analyse historical daily weather data for Delhi.
+**Status:** Updated city requirements for hourly ERA5-Land data collection.
+
+**Next Step:** Implement and validate Delhi hourly data collection and local-time daily aggregation.

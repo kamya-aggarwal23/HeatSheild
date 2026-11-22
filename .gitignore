@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Copernicus CDS credentials
+.cdsapirc
+
+# Climate data - raw downloads
+data/raw/
+
+# Python environment files
+.env

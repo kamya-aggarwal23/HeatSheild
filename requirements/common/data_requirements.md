@@ -1,16 +1,20 @@
-
 # HeatShield V1 — Common Data Requirements
 
 ## 1. Objective
-To collect and prepare consistent historical daily weather data for Delhi, India and Tokyo, Japan for next-day maximum temperature forecasting.
+
+To collect consistent historical hourly 2-metre air temperature data for Delhi, India and Tokyo, Japan, and derive daily maximum temperatures for next-day heat prediction.
 
 ## 2. Data Source
-- Source: Open-Meteo Historical Weather API
+
+- Provider: Open-Meteo Historical Weather API
 - API Endpoint: https://archive-api.open-meteo.com/v1/archive
-- Data Type: Historical weather data
-- Frequency: Daily
-- Proposed Date Range: 1 January 2005 to 31 December 2025
-- The final date range will depend on data availability and consistency for both cities.
+- Dataset: ERA5-Land
+- Model identifier: `era5_land`
+- Historical data period: 1 January 2005 to 31 December 2025
+- Collection frequency: Hourly
+- Final output frequency: Daily
+
+Both cities must use the same dataset and weather variable.
 
 ## 3. Cities and Locations
 
@@ -19,91 +23,106 @@ To collect and prepare consistent historical daily weather data for Delhi, India
 | Delhi | India | Asia/Kolkata |
 | Tokyo | Japan | Asia/Tokyo |
 
-City-specific coordinates and weather station details will be maintained in their respective city requirement files.
+City-specific coordinates will be maintained in their respective city requirement files.
 
-## 4. Required Weather Variables
+## 4. Required Weather Variable
 
-| Variable | API Variable Name | Unit |
-|---|---|---|
-| Maximum Temperature | temperature_2m_max | °C |
-| Minimum Temperature | temperature_2m_min | °C |
-| Mean Temperature | temperature_2m_mean | °C |
-| Total Precipitation | precipitation_sum | mm |
-| Maximum Wind Speed | wind_speed_10m_max | km/h |
-| Mean Relative Humidity | relative_humidity_2m_mean | % |
-
-These variables will be collected for initial analysis and possible future feature engineering.
-
-**Note:** The initial baseline model will use only eight consecutive daily maximum-temperature observations as input features. Collecting additional variables does not mean they will all be used in the initial model.
-
-## 5. Common Dataset Structure
-
-Each city's dataset should contain the following columns:
-
-| Column | Description |
+| Parameter | Value |
 |---|---|
-| date | Date of observation |
-| temperature_2m_max | Daily maximum temperature |
-| temperature_2m_min | Daily minimum temperature |
-| temperature_2m_mean | Daily mean temperature |
-| precipitation_sum | Total daily precipitation |
-| wind_speed_10m_max | Maximum daily wind speed |
-| relative_humidity_2m_mean | Mean daily relative humidity |
+| Variable | `temperature_2m` |
+| Description | Air temperature at 2 metres above ground |
+| Collection frequency | Hourly |
+| Unit | °C |
+| Dataset | ERA5-Land |
 
-Both datasets must follow the same column naming convention and units.
+Only this variable will be collected for the initial V1 dataset.
 
-## 6. Data Storage
+## 5. Hourly Data Collection
 
-Raw datasets will be stored separately:
+- Download hourly `temperature_2m` observations.
+- Request timestamps in UTC.
+- Preserve the original hourly timestamps and temperature values.
+- Store raw hourly observations separately for each city.
+- Do not calculate daily maximum temperatures using UTC calendar dates.
 
-- data/raw/delhi_daily_2005_2025.csv
-- data/raw/tokyo_daily_2005_2025.csv
+## 6. Timezone Conversion and Daily Aggregation
 
-Processed datasets will be stored in the processed data directory after cleaning.
+The hourly timestamps must be converted from UTC to the respective city's local timezone before daily aggregation.
 
-Raw data must remain unchanged.
+Processing sequence:
 
-## 7. Data Quality Requirements
+1. Read hourly observations and UTC timestamps.
+2. Convert UTC timestamps to the city's local timezone.
+3. Extract the local calendar date.
+4. Group observations by local calendar date.
+5. Calculate the maximum hourly temperature for each local date.
+6. Save the resulting daily dataset.
 
-The collected datasets must be checked for:
+The final statistic is the maximum hourly 2-metre temperature recorded during each local calendar day.
 
-- Missing dates and missing values.
-- Duplicate records.
+## 7. Final Dataset Structure
+
+Each city's processed dataset must contain:
+
+| Column | Description | Unit |
+|---|---|---|
+| date | Local calendar date | YYYY-MM-DD |
+| temperature_2m_max | Maximum hourly 2-metre temperature for that local date | °C |
+
+Both cities must follow the same column naming convention and units.
+
+## 8. Data Storage
+
+Raw hourly datasets:
+
+- `data/raw/delhi_hourly_2005_2025.csv`
+- `data/raw/tokyo_hourly_2005_2025.csv`
+
+Processed daily datasets:
+
+- `data/processed/delhi_daily_2005_2025.csv`
+- `data/processed/tokyo_daily_2005_2025.csv`
+
+Raw hourly data must remain unchanged after collection. Timezone conversion and aggregation must produce separate processed datasets.
+
+## 9. Data Quality Requirements
+
+The collected and processed datasets must be checked for:
+
+- Missing hourly observations.
+- Missing local calendar dates.
+- Duplicate timestamps.
+- Duplicate local dates in processed datasets.
 - Incorrect or inconsistent units.
 - Invalid temperature values.
-- Chronological ordering of dates.
-- Consistent date formats.
+- Chronological ordering.
+- Correct UTC-to-local timezone conversion.
+- Expected hourly observations per local day.
 
-Any missing or invalid observations must be handled carefully and documented.
+Any missing or invalid observations must be investigated and documented before model development.
 
-## 8. Data Consistency
+## 10. Data Consistency
 
-- Both cities must use the same data source.
-- The same selected historical weather/reanalysis model should be used for both cities wherever available.
-- Both datasets should follow the same date range as far as possible.
-- All temperatures must be recorded in Celsius.
-- Dates must follow the local timezone of each city.
+- Both cities must use Open-Meteo Historical Weather API.
+- Both cities must use ERA5-Land.
+- Both cities must use hourly `temperature_2m`.
+- Both datasets must cover the same intended historical period.
+- Temperatures must be recorded in Celsius.
+- Daily aggregation must use each city's local calendar date.
+- The same processing methodology must be applied to both cities.
 
-### Data Source and Model Consistency Rules
+## 11. Limitations
 
-1. Both Delhi and Tokyo datasets must be collected using Open-Meteo Historical Weather API.
-2. Both cities must use the same selected historical weather/reanalysis model.
-3. Do not use different models for the two cities without discussing and documenting the reason.
-4. Before downloading the data, both team members must confirm the selected model, date range, variables and units.
-5. Record the selected model and API parameters in the data collection documentation.
+- ERA5-Land is reanalysis data and may differ from actual ground-station observations.
+- Its approximately 0.1° spatial resolution represents gridded weather conditions rather than measurements at every individual location.
+- Missing hourly observations can affect the calculated daily maximum.
+- The final daily dataset depends on correct timezone conversion and aggregation.
 
-## 9. Limitations
+## 12. Future Improvements
 
-- Historical data availability may vary between cities.
-- Reanalysis data may differ from actual ground-station observations.
-- Missing observations may affect model performance.
-- The initial model focuses on daily maximum temperature rather than hourly weather conditions.
+- Add humidity and other weather variables if required.
+- Explore additional heat-risk indicators.
+- Compare ERA5-Land with other historical datasets.
+- Introduce additional features during feature engineering.
 
-## 10. Future Improvements
-
-- Add additional weather variables as model features.
-- Compare different historical weather datasets.
-- Include seasonal and calendar-based features.
-- Explore more detailed weather indicators for heat-risk prediction.
-
-**Note:** The selected data source, model, date range and variable availability must be verified during data collection before finalizing the datasets.
+**Final V1 data output:** Daily maximum 2-metre temperature in °C, calculated from hourly ERA5-Land observations using each city's local calendar day.
